@@ -21,6 +21,7 @@
 #define H_BOOTUTIL_
 
 #include <inttypes.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -90,6 +91,8 @@ int context_boot_go(struct boot_loader_state *state, struct boot_rsp *rsp);
 
 int boot_swap_type_multi(int image_index);
 int boot_swap_type(void);
+
+int boot_is_confirmed(bool * pIsConfirmed);
 
 int boot_set_pending(int permanent);
 int boot_set_confirmed(void);

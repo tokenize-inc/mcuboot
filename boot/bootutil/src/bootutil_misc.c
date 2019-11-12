@@ -593,6 +593,49 @@ boot_swap_type(void)
 }
 
 /**
+ * Checks whether or not the image in slot 0 is waiting to be confirmed.
+ * The system will continue booting into the image in slot 0 until told to boot from a different slot.
+ *
+ * @param pIsConfirmed      pointer to the bool for storing the result of the check
+ * @return                  0 on success; nonzero on failure.
+ */
+int
+boot_is_confirmed(bool * pIsConfirmed)
+{
+    struct boot_swap_state state_slot0;
+    int rc;
+
+    rc = boot_read_swap_state_by_id(FLASH_AREA_IMAGE_PRIMARY(0), &state_slot0);
+    if (rc != 0) {
+        return rc;
+    }
+
+    // Make sure this is a valid image
+    if (state_slot0.magic == BOOT_MAGIC_BAD){
+        return BOOT_EBADVECT;
+    }
+
+    // Check whether or not the image is confirmed
+    if ((state_slot0.image_ok == BOOT_FLAG_SET) ||
+        (state_slot0.magic == BOOT_MAGIC_UNSET)){
+        /* Image is confirmed. */
+        *pIsConfirmed = true;
+        return 0;
+    }
+    else if (state_slot0.magic == BOOT_MAGIC_GOOD){
+        /* Confirm needed. */
+        *pIsConfirmed = false;
+        return 0;
+    }
+    else{
+        /* Unexpected state. */
+        return BOOT_EBADVECT;
+    }
+}
+
+
+
+/**
  * Marks the image in the secondary slot as pending.  On the next reboot,
  * the system will perform a one-time boot of the the secondary slot image.
  *
